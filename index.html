@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이모티콘으로 마음 전하기 챗봇</title>
+    <!-- Tailwind CSS 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 학생들에게 친근한 폰트 적용 (Google Fonts) */
+        @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+        body {
+            font-family: 'Jua', sans-serif;
+            background-color: #f0f9ff; /* 매우 연한 하늘색 배경 */
+        }
+        /* 스크롤바 디자인 (선택 사항) */
+        #chat-window::-webkit-scrollbar {
+            width: 8px;
+        }
+        #chat-window::-webkit-scrollbar-thumb {
+            background-color: #93c5fd; /* 연한 파란색 */
+            border-radius: 4px;
+        }
+        #chat-window::-webkit-scrollbar-track {
+            background-color: #e0f2fe; /* 더 연한 파란색 */
+        }
+        /* 챗봇 타이핑 애니메이션 */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+        }
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background-color: #9ca3af;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: bounce 1.4s infinite both;
+        }
+        .typing-indicator span:nth-child(1) { animation-delay: 0.0s; }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl border-4 border-blue-300 overflow-hidden">
+        <!-- 헤더 -->
+        <header class="p-4 bg-gradient-to-r from-yellow-300 to-blue-400 text-center shadow-md">
+            <h1 class="text-2xl font-bold text-white drop-shadow-md">✨ 이모티콘으로 마음 전하기 ✨</h1>
+        </header>
+
+        <!-- 채팅창 -->
+        <div id="chat-window" class="p-4 h-96 overflow-y-auto space-y-4 bg-blue-50">
+            <!-- 챗봇 메시지는 여기에 동적으로 추가됩니다 -->
+        </div>
+
+        <!-- 챗봇 타이핑 중 표시 -->
+        <div id="typing-indicator" class="hidden typing-indicator">
+            <span class="bg-gray-400"></span>
+            <span class="bg-gray-400"></span>
+            <span class="bg-gray-400"></span>
+        </div>
+
+        <!-- 선택지 버튼 영역 -->
+        <div id="options-container" class="p-4 bg-white border-t-2 border-blue-200 grid grid-cols-1 gap-2">
+            <!-- 선택지 버튼은 여기에 동적으로 추가됩니다 -->
+        </div>
+    </div>
+
+    <script>
+        // HTML 요소 가져오기
+        const chatWindow = document.getElementById('chat-window');
+        const optionsContainer = document.getElementById('options-container');
+        const typingIndicator = document.getElementById('typing-indicator');
+
+        // 챗봇 시나리오 객체
+        // 각 단계(step)는 챗봇의 메시지와 학생의 선택지를 포함합니다.
+        const scenarios = {
+            0: { // 시작
+                botMessages: [
+                    "안녕! 나는 '마음 표현 도우미' 챗봇이야. 🤖",
+                    "우리는 오늘 온라인 대화에서 이모티콘으로 마음을 전하는 방법을 배울 거야.",
+                    "준비됐니?"
+                ],
+                options: [
+                    { text: "응, 준비됐어! 😆", nextStep: 1 },
+                    { text: "아직...", nextStep: 0.1 }
+                ]
+            },
+            0.1: { // 아직 준비 안 됨
+                botMessages: ["괜찮아. 천천히 시작해 보자! 🐢"],
+                options: [
+                    { text: "좋아, 시작할게!", nextStep: 1 }
+                ]
+            },
+            1: { // 상황 1: 친구가 기분 안 좋을 때 (글자만)
+                botMessages: [
+                    "좋아! 첫 번째 상황이야.",
+                    "친구가 '오늘 기분이 별로 안 좋아'라고 톡을 보냈어. 😥",
+                    "이럴 땐 뭐라고 답장하는 게 좋을까?"
+                ],
+                options: [
+                    { text: "1. 왜? 무슨 일인데?", nextStep: 2.1 },
+                    { text: "2. 아, 그렇구나.", nextStep: 2.2 },
+                    { text: "3. ㅋ", nextStep: 2.3 }
+                ]
+            },
+            // 상황 1에 대한 반응
+            2.1: {
+                botMessages: ["'왜? 무슨 일인데?' 좋은 대답이야! 👍", "친구의 기분을 물어봐 주면 '나에게 관심이 있구나'라고 느낄 거야."],
+                options: [{ text: "다음으로 ➔", nextStep: 3 }]
+            },
+            2.2: {
+                botMessages: ["'아, 그렇구나.' 그렇게 대답할 수도 있지.", "하지만 친구가 '내 기분에 관심이 없나?' 하고 서운해할 수도 있어. 😢"],
+                options: [{ text: "다음으로 ➔", nextStep: 3 }]
+            },
+            2.3: {
+                botMessages: ["앗! 'ㅋ'만 보내면 친구가 '내 기분을 장난으로 생각하나?' 하고 오해할 수 있어. 😭"],
+                options: [{ text: "다음으로 ➔", nextStep: 3 }]
+            },
+            3: { // 글자만 있을 때의 문제점 설명
+                botMessages: [
+                    "맞아. 온라인 대화는 목소리나 표정이 보이지 않아서, 글자만으로는 마음이 100% 전달되지 않아.",
+                    "이럴 때 '이모티콘'을 쓰면 기분을 더 잘 전할 수 있어! ✨",
+                    "다음 퀴즈로 가볼까?"
+                ],
+                options: [
+                    { text: "좋아! 다음 퀴즈! 🧐", nextStep: 4 },
+                    { text: "잠깐, 다시 생각해볼래.", nextStep: 1 }
+                ]
+            },
+            4: { // 상황 2: 친구가 상 탔을 때 (이모티콘 퀴즈)
+                botMessages: [
+                    "두 번째 상황! 이번엔 이모티콘을 사용해 보자.",
+                    "친구가 '나 오늘 그림그리기 대회에서 상 탔어!'라고 톡을 보냈어. 🎨",
+                    "친구가 정말 기뻐 보여! 어떻게 축하해 주면 좋을까?"
+                ],
+                options: [
+                    { text: "1. 우와! 정말? 😮", nextStep: 5.1 },
+                    { text: "2. 축하해! 🎉🥳", nextStep: 5.2 },
+                    { text: "3. 좋겠다. 😒", nextStep: 5.3 }
+                ]
+            },
+            // 상황 2에 대한 반응
+            5.1: {
+                botMessages: ["좋은 반응이야! '😮' 이모티콘은 '놀랐다'는 마음을 잘 보여줘.", "하지만 '축하한다'는 마음은 조금 부족할 수도 있어."],
+                options: [{ text: "그렇구나. ➔", nextStep: 6 }]
+            },
+            5.2: {
+                botMessages: ["최고야! 👍 '축하해'라는 말과 함께 '🎉🥳' 이모티콘을 쓰니까, 내가 얼마나 기쁘게 축하하는지 친구가 바로 알 수 있을 거야!"],
+                options: [{ text: "신난다! ➔", nextStep: 6 }]
+            },
+            5.3: {
+                botMessages: ["앗! '😒' 이모티콘은 '기분이 안 좋거나', '삐진' 것처럼 보여. 😟", "친구는 '내가 상 탄 게 싫은가?' 하고 속상해할 수 있어."],
+                options: [{ text: "아... ➔", nextStep: 6 }]
+            },
+            6: { // 이모티콘의 중요성 강조
+                botMessages: [
+                    "봐, 똑같은 말이라도 어떤 이모티콘을 쓰느냐에 따라 느낌이 확 달라지지?",
+                    "마지막 퀴즈 하나 더! 🧐"
+                ],
+                options: [
+                    { text: "좋아! 마지막 퀴즈!", nextStep: 7 },
+                    { text: "이제 그만할래.", nextStep: 9 }
+                ]
+            },
+            7: { // 상황 3: 사과하기 (이모티콘 퀴즈)
+                botMessages: [
+                    "마지막 상황이야. 조금 어려울 수 있어!",
+                    "친구가 '오늘 놀이터에서 만나!'라고 보냈는데, 내가 약속을 잊고 못 갔어. 😭",
+                    "친구가 '왜 안 왔어?'라고 톡을 보냈어. 😠",
+                    "이럴 때 어떻게 사과해야 할까?"
+                ],
+                options: [
+                    { text: "1. 아, 맞다! 🤣", nextStep: 8.1 },
+                    { text: "2. 미안해 ㅠㅠ 내가 깜빡했어. 🙏", nextStep: 8.2 },
+                    { text: "3. 헐. 😲", nextStep: 8.3 }
+                ]
+            },
+            // 상황 3에 대한 반응
+            8.1: {
+                botMessages: ["앗! '🤣' 이모티콘은 웃는 표정이잖아.", "친구는 '내가 기다린 게 웃긴가?' 하고 더 화가 날 수 있어! 🔥"],
+                options: [{ text: "조심해야겠다. ➔", nextStep: 9 }]
+            },
+            8.2: {
+                botMessages: ["정말 좋은 사과 방법이야! '미안해'라는 말과 함께 'ㅠㅠ' (우는 모습) '🙏' (미안하다는 손짓)을 쓰니까, 내가 얼마나 미안해하는지 진심이 잘 전해질 거야."],
+                options: [{ text: "다행이다! ➔", nextStep: 9 }]
+            },
+            8.3: {
+                botMessages: ["'😲' 이모티콘은 '놀랐다'는 뜻이지만, '미안하다'는 마음은 잘 안 보여. 😥", "친구는 '놀라기만 하고 미안하지도 않나?' 생각할 수 있어."],
+                options: [{ text: "그렇구나... ➔", nextStep: 9 }]
+            },
+            9: { // 정리 및 마무리
+                botMessages: [
+                    "정말 잘했어! 👍",
+                    "정리해 보자. 이모티콘은 우리 마음을 더 잘 표현해 주지만, 상황에 맞게 잘 골라 써야 해.",
+                    "특히 사과할 때 😥🙏, 축하할 때 🎉🥳, 고마울 때 🥰❤️ 처럼 긍정적인 이모티콘을 쓰면 친구와 더 사이좋게 지낼 수 있을 거야!",
+                    "오늘 '이모티콘으로 마음 전하기' 공부, 어땠어?"
+                ],
+                options: [
+                    { text: "재미있었어! 🤩", nextStep: 10 },
+                    { text: "조금 어려웠어. 😅", nextStep: 10.1 }
+                ]
+            },
+            10: { // 긍정적 마무리
+                botMessages: ["다행이다! 앞으로도 친구들과 예쁜 말, 긍정적인 이모티콘으로 즐겁게 대화하길 바라! 안녕! 👋"],
+                options: [] // 선택지 없음 (종료)
+            },
+            10.1: { // 격려 마무리
+                botMessages: ["괜찮아. 조금씩 연습하면 '디지털 대화 예절' 박사가 될 수 있을 거야! 🎓 오늘 수고했어! 안녕! 👋"],
+                options: [] // 선택지 없음 (종료)
+            }
+        };
+
+        // 챗봇 메시지 추가 함수
+        function addBotMessage(message) {
+            return new Promise(resolve => {
+                // 메시지 래퍼 생성
+                const messageWrapper = document.createElement('div');
+                messageWrapper.className = "flex justify-start";
+                
+                // 메시지 박스 생성
+                const messageElement = document.createElement('div');
+                messageElement.className = "bg-blue-200 text-gray-800 p-3 rounded-lg rounded-bl-none max-w-xs shadow";
+                messageElement.innerHTML = `🤖 ${message}`; // 챗봇 아이콘 추가
+                
+                messageWrapper.appendChild(messageElement);
+                chatWindow.appendChild(messageWrapper);
+                
+                // 스크롤을 맨 아래로 이동
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+                resolve();
+            });
+        }
+
+        // 학생(사용자) 메시지 추가 함수
+        function addUserMessage(message) {
+            // 메시지 래퍼 생성
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = "flex justify-end";
+            
+            // 메시지 박스 생성
+            const messageElement = document.createElement('div');
+            messageElement.className = "bg-yellow-200 text-gray-800 p-3 rounded-lg rounded-br-none max-w-xs shadow";
+            messageElement.innerHTML = `${message} 🧑‍🎓`; // 학생 아이콘 추가
+            
+            messageWrapper.appendChild(messageElement);
+            chatWindow.appendChild(messageElement);
+            
+            // 스크롤을 맨 아래로 이동
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        // 선택지 버튼 표시 함수
+        function showOptions(options) {
+            // 기존 버튼 모두 삭제
+            optionsContainer.innerHTML = '';
+            
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = "w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-200 ease-in-out transform hover:-translate-y-0.5";
+                button.textContent = option.text;
+                
+                // 버튼 클릭 이벤트
+                button.onclick = () => {
+                    handleOptionClick(option.text, option.nextStep);
+                };
+                
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        // 타이핑 인디케이터 표시/숨기기
+        function toggleTyping(show) {
+            if (show) {
+                typingIndicator.classList.remove('hidden');
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            } else {
+                typingIndicator.classList.add('hidden');
+            }
+        }
+
+        // 시나리오 실행 함수 (비동기 처리)
+        async function runScenario(step) {
+            const scenario = scenarios[step];
+            if (!scenario) return;
+
+            // 타이핑 인디케이터 표시
+            toggleTyping(true);
+
+            // 챗봇 메시지를 순차적으로, 약간의 딜레이를 두고 표시
+            for (const message of scenario.botMessages) {
+                // 각 메시지 사이 딜레이 (1초)
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                await addBotMessage(message);
+            }
+
+            // 타이핑 인디케이터 숨기기
+            toggleTyping(false);
+
+            // 선택지 표시 (0.5초 후)
+            setTimeout(() => {
+                showOptions(scenario.options);
+            }, 500);
+        }
+
+        // 선택지 클릭 처리 함수
+        function handleOptionClick(text, nextStep) {
+            // 1. 학생이 선택한 메시지를 채팅창에 표시
+            addUserMessage(text);
+            
+            // 2. 기존 선택지 버튼 숨기기
+            optionsContainer.innerHTML = '<div class="text-center text-gray-400">다음 메시지를 기다려주세요...</div>';
+            
+            // 3. 다음 시나리오 실행
+            runScenario(nextStep);
+        }
+
+        // 챗봇 시작
+        // 처음 시작할 때 0.5초 딜레이를 주어 자연스럽게 시작
+        setTimeout(() => {
+            runScenario(0);
+        }, 500);
+
+    </script>
+</body>
+</html>
