@@ -3,454 +3,363 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>이모티콘으로 마음 전하기 챗봇 (3단계 퀴즈)</title>
-    <!-- Tailwind CSS 로드 -->
+    <title>AI 마음상담 챗봇</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* 학생들에게 친근한 폰트 적용 (Google Fonts) */
-        @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
         body {
-            font-family: 'Jua', sans-serif;
-            background-color: #f0f9ff; /* 매우 연한 하늘색 배경 */
+            font-family: 'Noto Sans KR', sans-serif;
         }
-        /* 스크롤바 디자인 */
-        #chat-window::-webkit-scrollbar { width: 8px; }
-        #chat-window::-webkit-scrollbar-thumb { background-color: #93c5fd; border-radius: 4px; }
-        #chat-window::-webkit-scrollbar-track { background-color: #e0f2fe; }
-        
-        /* 챗봇 타이핑 애니메이션 */
-        .typing-indicator { display: flex; align-items: center; padding: 8px 12px; }
-        .typing-indicator span { height: 8px; width: 8px; background-color: #9ca3af; border-radius: 50%; display: inline-block; margin: 0 2px; animation: bounce 1.4s infinite both; }
-        .typing-indicator span:nth-child(1) { animation-delay: 0.0s; }
-        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1.0); }
+        /* 스크롤바 스타일 */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body class="bg-gray-100">
 
-    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl border-4 border-blue-300 overflow-hidden">
-        <!-- 헤더 -->
-        <header class="p-4 bg-gradient-to-r from-yellow-300 to-blue-400 text-center shadow-md">
-            <h1 class="text-2xl font-bold text-white drop-shadow-md">✨ 이모티콘 퀴즈 3단계 ✨</h1>
-        </header>
+    <div id="app-container" class="w-full h-screen flex flex-col md:flex-row p-4 gap-4 max-w-7xl mx-auto">
 
-        <!-- 채팅창 -->
-        <div id="chat-window" class="p-4 h-[70vh] overflow-y-auto space-y-4 bg-blue-50">
-            <!-- 챗봇 메시지는 여기에 동적으로 추가됩니다 -->
+        <!-- 왼쪽: 챗봇 영역 -->
+        <div class="flex flex-col w-full md:w-2/3 h-full bg-white rounded-2xl shadow-lg border border-gray-200">
+            <header class="p-4 border-b bg-blue-500 text-white rounded-t-2xl">
+                <h1 class="text-xl font-bold text-center">AI 마음상담 챗봇 🤖</h1>
+            </header>
+            
+            <div id="chat-messages" class="flex-1 p-6 overflow-y-auto custom-scrollbar">
+                <!-- 메시지들이 여기에 표시됩니다 -->
+            </div>
+
+            <div id="chat-input-area" class="p-4 border-t">
+                 <div id="loading-indicator" class="hidden text-center text-gray-500 mb-2">
+                    <div class="flex justify-center items-center gap-2">
+                        <svg class="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>답변을 생각하고 있어요...</span>
+                    </div>
+                </div>
+                <form id="chat-form" class="flex items-center gap-3">
+                    <input type="text" id="message-input" class="flex-1 p-3 border rounded-full focus:ring-2 focus:ring-blue-400 focus:outline-none transition" placeholder="마음을 터놓고 이야기해 보세요..." autocomplete="off">
+                    <button type="submit" class="bg-blue-500 text-white p-3 rounded-full hover:bg-blue-600 transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
+                </form>
+            </div>
         </div>
 
-        <!-- 챗봇 타이핑 중 표시 -->
-        <div id="typing-indicator" class="hidden typing-indicator">
-            <span class="bg-gray-400"></span>
-            <span class="bg-gray-400"></span>
-            <span class="bg-gray-400"></span>
-        </div>
-
-        <!-- 선택지 버튼 영역 -->
-        <div id="options-container" class="p-4 bg-white border-t-2 border-blue-200 grid grid-cols-1 gap-2">
-            <!-- 선택지 버튼은 여기에 동적으로 추가됩니다 -->
+        <!-- 오른쪽: 상담 현황판 -->
+        <div class="w-full md:w-1/3 h-full bg-white rounded-2xl shadow-lg border border-gray-200 flex flex-col">
+            <header class="p-4 border-b bg-green-500 text-white rounded-t-2xl">
+                <h2 class="text-xl font-bold text-center">우리반 상담 현황 💖</h2>
+            </header>
+            <div id="dashboard" class="flex-1 p-6 overflow-y-auto custom-scrollbar">
+                <div id="dashboard-content" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+                    <!-- 학생들의 감정 상태 카드가 여기에 표시됩니다 -->
+                </div>
+                 <p id="no-students-msg" class="text-center text-gray-500 mt-8 hidden">아직 상담을 시작한 학생이 없어요.</p>
+            </div>
         </div>
     </div>
 
-    <script>
-        // HTML 요소 가져오기
-        const chatWindow = document.getElementById('chat-window');
-        const optionsContainer = document.getElementById('options-container');
-        const typingIndicator = document.getElementById('typing-indicator');
+    <!-- 이름 입력 모달 -->
+    <div id="name-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 transition-opacity">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-11/12 max-w-md text-center transform scale-100 transition-transform">
+            <h2 class="text-2xl font-bold mb-2 text-gray-800">반가워요!</h2>
+            <p class="text-gray-600 mb-6">상담을 시작하기 위해 정보를 입력해주세요.</p>
+            <form id="name-form" class="flex flex-col gap-4">
+                <div>
+                    <label for="name-input" class="block text-left text-sm font-medium text-gray-700 mb-1">이름</label>
+                    <input type="text" id="name-input" class="w-full p-3 border rounded-lg text-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" placeholder="이름을 입력하세요" required>
+                </div>
+                <div>
+                    <label for="api-key-input" class="block text-left text-sm font-medium text-gray-700 mb-1">Gemini API Key</label>
+                    <input type="password" id="api-key-input" class="w-full p-3 border rounded-lg text-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" placeholder="API Key를 입력하세요" required>
+                    <p class="text-xs text-gray-500 text-left mt-1">* 본인의 Gemini API Key가 필요합니다.</p>
+                </div>
+                <button type="submit" class="w-full mt-4 bg-blue-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-600 transition-all duration-300 shadow-md hover:shadow-lg">
+                    상담 시작하기
+                </button>
+            </form>
+        </div>
+    </div>
 
-        // --- 퀴즈 데이터 ---
-        // 3단계 (쉬움, 중간, 어려움) 퀴즈 레벨
-        const quizLevels = [
-            { // 1단계: 기본적인 감정 표현 (5문제)
-                levelName: "1단계 (기초)",
-                questions: [
-                    {
-                        botMessages: ["1-1. 친구가 '오늘 그림 대회에서 상 탔어!'라고 자랑했어. 🎨", "어떻게 축하해 주면 좋을까?"],
-                        options: [
-                            { text: "1. 축하해! 🥳🎉", isCorrect: true, feedback: "정답! 🥳🎉 이모티콘은 축하하는 마음을 200% 전달해!" },
-                            { text: "2. 좋겠다. 😒", isCorrect: false, feedback: "앗! 😒 표정은 '삐지거나' '기분 나쁜' 것처럼 보여. 친구가 오해할 수 있어!" },
-                            { text: "3. ㅋ", isCorrect: false, feedback: "이런! 'ㅋ' 하나만 보내면 '성의 없다'고 생각하거나 '비웃는다'고 오해할 수 있어. 😭" }
-                        ]
-                    },
-                    {
-                        botMessages: ["1-2. 친구가 '오늘 기분이 별로 안 좋아'라고 톡을 보냈어. 😥", "어떻게 위로해 주면 좋을까?"],
-                        options: [
-                            { text: "1. 왜? 무슨 일이야? 😥", isCorrect: true, feedback: "정답! 😥 표정으로 '나도 걱정하고 있어'라는 마음을 보여주면 친구가 든든할 거야." },
-                            { text: "2. 힘내! 🤣", isCorrect: false, feedback: "앗! 🤣 이모티콘은 '엄청 웃기다'는 뜻이야. 친구는 '내 슬픈 기분이 웃긴가?' 하고 화가 날 수 있어! 🔥" },
-                            { text: "3. 아, 그렇구나. 😐", isCorrect: false, feedback: "😐 표정은 '아무 생각이 없다'는 뜻이야. 친구는 '나한테 관심이 없나?' 하고 서운해할 거야. 😢" }
-                        ]
-                    },
-                    {
-                        botMessages: ["1-3. 내가 친구 생일 선물을 줬더니, 친구가 '선물 고마워!'라고 보냈어. 🎁", "뭐라고 답장할까?"],
-                        options: [
-                            { text: "1. 별 거 아니야~ 😅", isCorrect: false, feedback: "😅 이모티콘은 '땀 흘리며 당황'하는 모습이야. '선물 준 게 민망한가?' 생각할 수 있어." },
-                            { text: "2. 마음에 든다니 다행이다! 🥰", isCorrect: true, feedback: "정답! 🥰 하트 눈 이모티콘은 '기쁘다', '좋아한다'는 마음을 잘 보여줘!" },
-                            { text: "3. 으응. 😒", isCorrect: false, feedback: "앗! 😒 표정은 '마음에 안 든다'는 뜻 같아. 친구가 '선물 주고 화났나?' 하고 걱정할 거야." }
-                        ]
-                    },
-                    {
-                        botMessages: ["1-4. 친구와 약속을 깜빡하고 못 갔어! 😱", "미안하다고 사과해야 해. 뭐라고 보낼까?"],
-                        options: [
-                            { text: "1. 헐, 미안! 😜", isCorrect: false, feedback: "이런! 😜 표정은 '메롱'하며 장난치는 모습이야. 진심으로 사과하는 것 같지 않아! 😠" },
-                            { text: "2. 미안 ㅠㅠ 내가 깜빡했어 🙏", isCorrect: true, feedback: "정답! ㅠㅠ 🙏 이모티콘은 '정말 미안해서 울고 있다', '용서를 빈다'는 진심을 잘 보여줘." },
-                            { text: "3. 아, 맞다! 🤣", isCorrect: false, feedback: "앗! 🤣 이모티콘은 '웃기다'는 뜻이야. 친구는 '내가 기다린 게 웃긴가?' 하고 더 화가 날 수 있어! 🔥" }
-                        ]
-                    },
-                    {
-                        botMessages: ["1-5. 친구가 '오늘 우리 소풍 가는 날!'이라고 톡을 보냈어. 🚌", "신나는 마음을 표현해 보자!"],
-                        options: [
-                            { text: "1. 응... 😴", isCorrect: false, feedback: "😴 이모티콘은 '졸리다'는 뜻이야. 소풍 가기 싫은 것처럼 보여!" },
-                            { text: "2. 진짜? 😑", isCorrect: false, feedback: "😑 이 표정은 '지루하다'거나 '별로다'라는 뜻이야. 친구가 실망할 거야." },
-                            { text: "3. 우와! 정말 신난다! 😆🤩", isCorrect: true, feedback: "정답! 😆🤩 이모티콘을 보니 '정말 신나고 기대된다'는 마음이 100% 느껴져!" }
-                        ]
-                    }
-                ]
-            },
-            { // 2단계: 조금 헷갈리는 감정 (5문제)
-                levelName: "2단계 (응용)",
-                questions: [
-                    {
-                        botMessages: ["2-1. 친구가 '나 숙제하다가 밤샜어'라고 보냈어. 😵", "이 😵 이모티콘은 어떤 뜻일까?"],
-                        options: [
-                            { text: "1. '신난다'는 뜻 😆", isCorrect: false, feedback: "땡! 😆 신나는 표정이 아니야. 눈이 빙글빙글 돌아가고 있어!" },
-                            { text: "2. '너무 피곤하고 힘들다'는 뜻 😴", isCorrect: true, feedback: "정답! 😵 표정은 '너무 피곤해서 어지럽다'는 뜻이야. '괜찮아?'라고 물어봐 주자!" },
-                            { text: "3. '화가 난다'는 뜻 😠", isCorrect: false, feedback: "땡! 😠 화가 난 표정과는 조금 달라. '힘들다'는 뜻에 더 가까워." }
-                        ]
-                    },
-                    {
-                        botMessages: ["2-2. 내가 재미있는 농담을 보냈더니, 친구가 'ㅋㅋ 진짜 웃긴다 😅'라고 보냈어.", "이 😅 이모티콘은 어떤 뜻일까?"],
-                        options: [
-                            { text: "1. '정~말 재미있다'는 뜻 🤣", isCorrect: false, feedback: "땡! 🤣 이모티콘이 아니야. 땀을 흘리고 있잖아? '정말 웃기다'는 아닌 것 같아." },
-                            { text: "2. '화가 난다'는 뜻 😠", isCorrect: false, feedback: "땡! 😠 화난 표정은 아니지? 웃고 있잖아." },
-                            { text: "3. '웃기긴 한데, 좀 민망하다'는 뜻 😥", isCorrect: true, feedback: "정답! 😅 이모티콘은 '민망할 때'나 '억지로 웃을 때' 자주 써. '내 농담이 별로였나?' 하고 생각해 볼 수 있어." }
-                        ]
-                    },
-                    {
-                        botMessages: ["2-3. 친구가 '나 시험 100점 맞았어!'라고 보냈어. 💯", "그런데 친구가 '😎' 이모티콘을 썼네? 이건 어떤 마음일까?"],
-                        options: [
-                            { text: "1. '부끄럽다' 😥", isCorrect: false, feedback: "땡! 😥 슬프거나 부끄러운 표정이 아니야. 선글라스를 끼고 웃고 있어!" },
-                            { text: "2. '내가 좀 멋지지? (뿌듯함)' 😏", isCorrect: true, feedback: "정답! 😎 이모티콘은 '멋지다', '자신감 있다', '뿌듯하다'는 마음을 장난스럽게 표현한 거야!" },
-                            { text: "3. '화가 난다' 😠", isCorrect: false, feedback: "땡! 😠 화난 표정은 아니야. 오히려 기분이 좋아 보여!" }
-                        ]
-                    },
-                    {
-                        botMessages: ["2-4. 친구가 '오늘 급식 맛있는 거 나온다!'라고 보냈어. 🍗", "그런데 친구가 '🤔' 이모티콘을 썼어. 이건 무슨 뜻일까?"],
-                        options: [
-                            { text: "1. '정말 신난다' 😆", isCorrect: false, feedback: "땡! 😆 신나는 표정이 아니야. 턱을 괴고 생각하고 있어." },
-                            { text: "2. '급식이 맛있는지 생각 중이다' 🧐", isCorrect: true, feedback: "정답! 🤔 이모티콘은 '생각 중', '고민 중'이라는 뜻이야. '진짜 맛있는 거 맞나?' 하고 고민하는 것 같아." },
-                            { text: "3. '슬프다' 😥", isCorrect: false, feedback: "땡! 😥 슬픈 표정은 아니야. '고민'하는 표정에 가까워." }
-                        ]
-                    },
-                    {
-                        botMessages: ["2-5. 친구가 '방 청소하기 싫다 😑'라고 보냈어.", "이 😑 이모티콘은 어떤 마음일까?"],
-                        options: [
-                            { text: "1. '정말 귀찮고 짜증 난다' 😒", isCorrect: true, feedback: "정답! 😑 이모티콘은 '지루하다', '귀찮다', '짜증 난다'는 마음을 전부 표현하는 표정이야." },
-                            { text: "2. '신난다' 🥳", isCorrect: false, feedback: "땡! 🥳 신나는 표정과는 완전 반대지?" },
-                            { text: "3. '배고프다' 🤤", isCorrect: false, feedback: "땡! 🤤 배고픈 표정이 아니야. '정말 하기 싫다'는 마음이 담겨있어." }
-                        ]
-                    }
-                ]
-            },
-            { // 3단계: 미묘한 상황과 오해 (5문제)
-                levelName: "3단계 (심화)",
-                questions: [
-                    {
-                        botMessages: ["3-1. 친구가 '너 때문에 숙제 다 못했잖아! 😡'라고 보냈어.", "이 😡 이모티콘은 어떤 마음일까?"],
-                        options: [
-                            { text: "1. '장난치는 중이다' 😜", isCorrect: false, feedback: "땡! 😜 장난치는 표정이 아니야. 얼굴이 빨갛게 변할 정도로 '정말 화가 났다'는 뜻이야! 😱" },
-                            { text: "2. '정말로 화가 났다' 😠", isCorrect: true, feedback: "정답! 😡 이모티콘은 '정말 화가 났다'는 강력한 표현이야. '왜? 미안해!'라고 빨리 사과해야 할지도 몰라!" },
-                            { text: "3. '피곤하다' 😴", isCorrect: false, feedback: "땡! 😴 피곤한 표정이 아니야. '분노'의 표정이야!" }
-                        ]
-                    },
-                    {
-                        botMessages: ["3-2. 내가 '오늘 같이 놀래?'라고 보냈는데, 친구가 '아니. 😐'라고 딱 잘라 말했어.", "이 😐 이모티콘은 어떤 뜻일까?"],
-                        options: [
-                            { text: "1. '정말 신난다' 😆", isCorrect: false, feedback: "땡! 😆 신나는 표정이 아니야. 입이 일자(-)로 닫혀있어." },
-                            { text: "2. '기분이 안 좋거나, 관심 없다' 😒", isCorrect: true, feedback: "정답! 😐 이모티콘은 '별로', '관심 없음' 또는 '기분이 안 좋음'을 뜻할 수 있어. 이럴 땐 '무슨 일 있어?'라고 물어보는 게 좋아." },
-                            { text: "3. '부끄럽다' 😊", isCorrect: false, feedback: "땡! 😊 부끄러운 표정은 아니야. '무표정'에 가까워." }
-                        ]
-                    },
-                    {
-                        botMessages: ["3-3. 친구가 '발표 시간에 넘어져서 창피했어 😭'라고 보냈어.", "이때 'ㅋㅋㅋㅋ 🤣'라고 보내면 어떻게 될까?"],
-                        options: [
-                            { text: "1. '친구가 재미있어한다' 🥰", isCorrect: false, feedback: "아니야! 🤣 이모티콘은 '비웃는다'고 오해하기 딱 좋아. 친구는 창피해서 😭 우는 이모티콘을 썼잖아!" },
-                            { text: "2. '친구와 사이가 더 나빠질 수 있다' 😠", isCorrect: true, feedback: "정답... 😭 친구는 '내가 창피한 게 웃겨?'라고 생각하며 더 화가 나거나 상처받을 거야. 절대 쓰면 안 돼!" },
-                            { text: "3. '친구가 위로받는다' 🤗", isCorrect: false, feedback: "아니야! 🤣 웃는 이모티콘은 위로가 되지 않아. '괜찮아? 😥'라고 보내야 해." }
-                        ]
-                    },
-                    {
-                        botMessages: ["3-4. 친구가 '오늘 본 영화가... 🙄'라고 보냈어.", "이 🙄 이모티콘은 어떤 뜻일까?"],
-                        options: [
-                            { text: "1. '영화가 너~무 감동적이다' 😭", isCorrect: false, feedback: "땡! 😭 우는 표정이 아니야. 눈을 위로 굴리고 있어." },
-                            { text: "2. '영화가 너~무 재미있다' 🤩", isCorrect: false, feedback: "땡! 🤩 반짝이는 눈이 아니야. '어이없다'는 듯한 표정이야." },
-                            { text: "3. '영화가 별로거나, 어이없다' 😒", isCorrect: true, feedback: "정답! 🙄 이모티콘은 '마음에 안 든다', '어이없다', '지루하다'는 뜻으로 많이 쓰여. '재미없었어?'라고 물어봐 주자." }
-                        ]
-                    },
-                    {
-                        botMessages: ["3-5. 친구가 '나 무서운 꿈 꿨어 😱'라고 보냈어.", "이 😱 이모티콘은 어떤 마음일까?"],
-                        options: [
-                            { text: "1. '정말 무서웠다' 😨", isCorrect: true, feedback: "정답! 😱 이모티콘은 '깜짝 놀라거나' '정말 무섭다'는 뜻이야. '괜찮아?'라고 꼭 물어봐 주자!" },
-                            { text: "2. '기쁘다' 🥳", isCorrect: false, feedback: "땡! 🥳 기쁜 표정이 아니야. 얼굴이 파랗게 질려서 소리치고 있어!" },
-                            { text: "3. '배고프다' 🤤", isCorrect: false, feedback: "땡! 🤤 배고픈 표정이 아니야. '공포'에 질린 표정이야!" }
-                        ]
-                    }
-                ]
-            }
-        ];
+    <script type="module">
+        // Firebase SDK import
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- 흐름 제어 시나리오 ---
-        // 퀴즈 외의 도입, 단계 이동, 마무리를 담당
-        const scenarios = {
-            0: { // 시작
-                botMessages: [
-                    "안녕! 나는 '마음 표현 도우미' 챗봇이야. 🤖",
-                    "이모티콘 퀴즈 게임에 온 걸 환영해!",
-                    "총 3단계의 퀴즈가 준비되어 있어. 이모티콘의 진짜 의미를 맞혀보자!",
-                    "준비됐니?"
-                ],
-                options: [
-                    { text: "응, 준비됐어! 😆", nextStep: "startQuiz" },
-                    { text: "아직...", nextStep: 1 }
-                ]
-            },
-            1: { // 아직 준비 안 됨
-                botMessages: ["괜찮아. 천천히 시작해 보자! 🐢", "준비되면 '시작' 버튼을 눌러줘!"],
-                options: [
-                    { text: "좋아, 시작할게!", nextStep: "startQuiz" }
-                ]
-            },
-            100: { // 1단계 완료 -> 2단계 시작
-                botMessages: ["1단계 통과! 🥳 정말 잘했어.", "이제 조금 더 헷갈리는 2단계 퀴즈를 시작할게!", "준비됐지? 🧐"],
-                options: [ { text: "좋아! 2단계 시작! 🚀", nextStep: "continueQuiz" } ]
-            },
-            200: { // 2단계 완료 -> 3단계 시작
-                botMessages: ["2단계도 통과! 🤩 대단한데?", "이제 마지막 3단계, 가장 어려운 퀴즈야.", "이모티콘의 숨겨진 뜻을 맞혀보자! 🤔"],
-                options: [ { text: "좋아! 마지막 3단계! 🔥", nextStep: "continueQuiz" } ]
-            },
-            300: { // 모든 퀴즈 완료 (마무리)
-                botMessages: [
-                    "우와! 3단계까지 모두 통과! 🏆",
-                    "너는 이제 '이모티콘 박사'야! 🎓",
-                    "총 15문제 중 <SCORE> 문제를 맞혔어!", // <SCORE>는 점수로 대체됨
-                    "이제 이모티콘으로 친구들과 마음을 더 잘 전할 수 있겠지?",
-                    "오늘 퀴즈, 어땠어?"
-                ],
-                options: [
-                    { text: "재미있었어! 🤩", nextStep: 301 },
-                    { text: "조금 어려웠어. 😅", nextStep: 302 }
-                ]
-            },
-            301: {
-                botMessages: ["다행이다! 앞으로도 친구들과 예쁜 말, 긍정적인 이모티콘으로 즐겁게 대화하길 바라! 안녕! 👋"],
-                options: []
-            },
-            302: {
-                botMessages: ["괜찮아. 어려운 문제도 있었지? 오늘 배운 걸 기억하면 다음엔 더 잘할 수 있을 거야! 수고했어! 안녕! 👋"],
-                options: []
-            }
+        // DOM 요소 가져오기
+        const chatMessages = document.getElementById('chat-messages');
+        const chatForm = document.getElementById('chat-form');
+        const messageInput = document.getElementById('message-input');
+        const dashboardContent = document.getElementById('dashboard-content');
+        const noStudentsMsg = document.getElementById('no-students-msg');
+        const nameModal = document.getElementById('name-modal');
+        const nameForm = document.getElementById('name-form');
+        const nameInput = document.getElementById('name-input');
+        const apiKeyInput = document.getElementById('api-key-input');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        
+        // Firebase 및 앱 상태 변수
+        let db, auth, userId, userName, userApiKey;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-counseling-app';
+        const chatHistory = [];
+
+        // 감정 이모지 및 색상 매핑
+        const emotionMap = {
+            '기쁨': { emoji: '😄', color: 'bg-yellow-300', text: 'text-yellow-800' },
+            '슬픔': { emoji: '😢', color: 'bg-blue-300', text: 'text-blue-800' },
+            '분노': { emoji: '😡', color: 'bg-red-400', text: 'text-red-800' },
+            '불안': { emoji: '😟', color: 'bg-purple-300', text: 'text-purple-800' },
+            '평온': { emoji: '😌', color: 'bg-green-300', text: 'text-green-800' },
+            '놀람': { emoji: '😮', color: 'bg-orange-300', text: 'text-orange-800' },
+            '중립': { emoji: '😐', color: 'bg-gray-300', text: 'text-gray-800' },
+            '상담중': { emoji: '💬', color: 'bg-gray-300', text: 'text-gray-800' },
         };
 
-        // --- 퀴즈 게임 상태 변수 ---
-        let currentLevel = 0; // 현재 레벨 (0, 1, 2)
-        let currentQuestionIndex = 0; // 현재 레벨의 문제 번호 (0~4)
-        let totalScore = 0; // 총 정답 개수
+        // Firebase 초기화 및 인증
+        async function initializeFirebase() {
+            try {
+                const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
 
-        // --- 챗봇 핵심 함수 ---
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        console.log("Authenticated User ID:", userId);
+                        // 이름이 설정되면 대시보드 리스너 시작
+                        if (userName) {
+                            listenToDashboard();
+                        }
+                    } else {
+                        console.log("User not authenticated.");
+                    }
+                });
 
-        // 챗봇 메시지 추가 함수 (비동기)
-        function addBotMessage(message) {
-            return new Promise(resolve => {
-                // 메시지 래퍼 생성
-                const messageWrapper = document.createElement('div');
-                messageWrapper.className = "flex justify-start";
-                
-                // 메시지 박스 생성
-                const messageElement = document.createElement('div');
-                messageElement.className = "bg-blue-200 text-gray-800 p-3 rounded-lg rounded-bl-none max-w-xs shadow";
-                messageElement.innerHTML = `🤖 ${message}`; // 챗봇 아이콘 추가
-                
-                messageWrapper.appendChild(messageElement);
-                chatWindow.appendChild(messageWrapper);
-                
-                // 스크롤을 맨 아래로 이동
-                chatWindow.scrollTop = chatWindow.scrollHeight;
-                resolve();
-            });
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Firebase 초기화 오류:", error);
+                addMessage('system', '연결에 문제가 발생했습니다. 페이지를 새로고침 해주세요.');
+            }
         }
 
-        // 학생(사용자) 메시지 추가 함수
-        function addUserMessage(message) {
-            const messageWrapper = document.createElement('div');
-            messageWrapper.className = "flex justify-end";
+        // 이름 설정 및 상담 시작
+        nameForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = nameInput.value.trim();
+            const key = apiKeyInput.value.trim();
+
+            if (name && key && userId) {
+                userName = name;
+                userApiKey = key; // API 키 저장
+                nameModal.style.opacity = '0';
+                setTimeout(() => nameModal.style.display = 'none', 300);
+
+                // Firestore에 사용자 정보 저장
+                const userDocRef = doc(db, `artifacts/${appId}/public/data/counseling_status`, userId);
+                await setDoc(userDocRef, {
+                    name: userName,
+                    emotion: '상담중',
+                    lastUpdate: serverTimestamp()
+                }, { merge: true });
+
+                addMessage('system', `${userName}님, 안녕하세요! 어떤 이야기든 편하게 들려주세요.`);
+                listenToDashboard(); // 대시보드 리스닝 시작
+            }
+        });
+
+        // Gemini API 호출 (지수 백오프 포함)
+        async function fetchWithExponentialBackoff(url, options, maxRetries = 5, initialDelay = 1000) {
+            let delay = initialDelay;
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.status === 429 || response.status >= 500) {
+                        throw new Error(`Server error: ${response.status}`);
+                    }
+                    return response;
+                } catch (error) {
+                    if (i === maxRetries - 1) throw error;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2;
+                }
+            }
+        }
+        
+        // Gemini를 통한 감정 분석 및 답변 생성
+        async function getGeminiResponse(prompt) {
+            loadingIndicator.classList.remove('hidden');
+            
+            const systemPrompt = `너는 학생들의 마음을 이해하고 공감해주는 따뜻한 상담 챗봇이야. 학생의 메시지를 분석해서 다음 JSON 형식으로만 응답해야 해.
+            1. 먼저, 메시지에 욕설, 비속어, 부적절한 표현이 있는지 확인해. 있으면 isProfane을 true로 설정하고, 다른 필드는 빈 문자열로 남겨둬.
+            2. 욕설이 없다면, isProfane을 false로 설정해.
+            3. 학생의 메시지에서 느껴지는 핵심 감정을 다음 중 하나로 분류해: '기쁨', '슬픔', '분노', '불안', '평온', '놀람', '중립'. 이 감정을 emotion 필드에 넣어줘.
+            4. 분석한 감정에 공감해주고, 긍정적인 방향으로 나아갈 수 있도록 따뜻한 조언을 담은 답변을 생성해서 response 필드에 넣어줘. 학생의 말을 단순히 따라하지 말고, 간결하고 진심이 담긴 메시지를 보내줘.
+
+            사용자 메시지: "${prompt}"`;
+            
+            // 사용자 입력 API 키 사용 및 gemini-2.0-flash-exp 모델 적용
+            const apiKey = userApiKey; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
+
+            chatHistory.push({ role: "user", parts: [{ text: systemPrompt }] });
+
+            const payload = {
+                contents: chatHistory,
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "isProfane": { "type": "BOOLEAN" },
+                            "emotion": { "type": "STRING" },
+                            "response": { "type": "STRING" }
+                        },
+                        required: ["isProfane", "emotion", "response"]
+                    }
+                }
+            };
+
+            try {
+                const response = await fetchWithExponentialBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API 요청 실패: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                
+                const candidate = result.candidates?.[0];
+                if (!candidate || !candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
+                    throw new Error("API 응답 형식이 올바르지 않습니다.");
+                }
+                
+                const text = candidate.content.parts[0].text;
+                chatHistory.push({ role: "model", parts: [{ text }] });
+                return JSON.parse(text);
+
+            } catch (error) {
+                console.error("Gemini API 오류:", error);
+                return { isProfane: false, emotion: '중립', response: '미안해요, 지금은 답변하기 조금 어려워요. 잠시 후 다시 시도해 주세요.' };
+            } finally {
+                loadingIndicator.classList.add('hidden');
+            }
+        }
+
+        // 메시지 전송 처리
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const messageText = messageInput.value.trim();
+            if (!messageText || !userName) return;
+
+            addMessage('user', messageText);
+            messageInput.value = '';
+
+            const geminiResult = await getGeminiResponse(messageText);
+
+            if (geminiResult.isProfane) {
+                addMessage('bot', '선생님이 모니터링 중입니다.');
+            } else {
+                addMessage('bot', geminiResult.response);
+                // Firestore에 감정 상태 업데이트
+                const userDocRef = doc(db, `artifacts/${appId}/public/data/counseling_status`, userId);
+                await updateDoc(userDocRef, {
+                    emotion: geminiResult.emotion || '중립',
+                    lastUpdate: serverTimestamp()
+                });
+            }
+        });
+
+        // 채팅창에 메시지 추가
+        function addMessage(sender, text) {
             const messageElement = document.createElement('div');
-            messageElement.className = "bg-yellow-200 text-gray-800 p-3 rounded-lg rounded-br-none max-w-xs shadow";
-            messageElement.innerHTML = `${message} 🧑‍🎓`; // 학생 아이콘 추가
-            messageWrapper.appendChild(messageElement);
-            chatWindow.appendChild(messageElement);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
+            messageElement.classList.add('mb-4', 'fade-in', 'max-w-xl');
+            
+            let content;
+            if (sender === 'user') {
+                messageElement.classList.add('ml-auto');
+                content = `<div class="bg-blue-500 text-white p-3 rounded-l-lg rounded-br-lg break-words">${text}</div>`;
+            } else if (sender === 'bot') {
+                messageElement.classList.add('mr-auto');
+                content = `<div class="bg-gray-200 text-gray-800 p-3 rounded-r-lg rounded-bl-lg break-words">${text}</div>`;
+            } else { // system
+                content = `<div class="text-center text-sm text-gray-500 my-2 italic">${text}</div>`;
+            }
+            
+            messageElement.innerHTML = content;
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        // 선택지 버튼 표시 함수 (퀴즈용/시나리오용)
-        function showOptions(options) {
-            optionsContainer.innerHTML = '';
-            
-            options.forEach(option => {
-                const button = document.createElement('button');
-                button.className = "w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-200 ease-in-out transform hover:-translate-y-0.5";
-                button.textContent = option.text;
-                
-                // 버튼 클릭 이벤트
-                if (option.hasOwnProperty('isCorrect')) {
-                    // 퀴즈 문제의 선택지일 경우
-                    button.onclick = () => handleAnswer(option);
-                } else {
-                    // 일반 시나리오의 선택지일 경우
-                    button.onclick = () => handleOptionClick(option.text, option.nextStep);
-                }
-                
-                optionsContainer.appendChild(button);
+        // 대시보드 업데이트 리스너
+        function listenToDashboard() {
+            const statusCollectionRef = collection(db, `artifacts/${appId}/public/data/counseling_status`);
+            onSnapshot(statusCollectionRef, (snapshot) => {
+                const students = [];
+                snapshot.forEach((doc) => {
+                    students.push({ id: doc.id, ...doc.data() });
+                });
+                renderDashboard(students);
             });
         }
 
-        // 타이핑 인디케이터 표시/숨기기
-        function toggleTyping(show) {
-            if (show) {
-                typingIndicator.classList.remove('hidden');
-                chatWindow.scrollTop = chatWindow.scrollHeight;
-            } else {
-                typingIndicator.classList.add('hidden');
+        // 대시보드 렌더링
+        function renderDashboard(students) {
+            dashboardContent.innerHTML = '';
+            if (students.length === 0) {
+                noStudentsMsg.classList.remove('hidden');
+                return;
             }
+            noStudentsMsg.classList.add('hidden');
+
+            students.sort((a, b) => (a.name > b.name) ? 1 : -1);
+
+            students.forEach(student => {
+                const emotion = emotionMap[student.emotion] || emotionMap['중립'];
+                const card = document.createElement('div');
+                card.className = `p-4 rounded-xl shadow-md flex flex-col items-center justify-center text-center transition-all duration-300 ${emotion.color} ${emotion.text}`;
+                card.innerHTML = `
+                    <div class="text-5xl mb-2">${emotion.emoji}</div>
+                    <div class="font-bold text-lg">${student.name}</div>
+                    <div class="text-sm">${student.emotion}</div>
+                `;
+                dashboardContent.appendChild(card);
+            });
         }
-
-        // [수정] 일반 시나리오 실행 함수 (비동기)
-        async function runScenario(stepKey) {
-            const scenario = scenarios[stepKey];
-            if (!scenario) return;
-
-            toggleTyping(true);
-
-            for (const message of scenario.botMessages) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                // 점수 표시 (<SCORE> 대체)
-                const
-messageToShow = message.replace("<SCORE>", totalScore);
-                await addBotMessage(messageToShow);
-            }
-
-            toggleTyping(false);
-
-            setTimeout(() => {
-                showOptions(scenario.options);
-            }, 500);
-        }
-
-        // [수정] 선택지 클릭 처리 함수 (시나리오용)
-        function handleOptionClick(text, nextStep) {
-            addUserMessage(text);
-            optionsContainer.innerHTML = '<div class="text-center text-gray-400">다음 메시지를 기다려주세요...</div>';
-            
-            if (nextStep === "startQuiz") {
-                startQuiz(); // 퀴즈 시작
-            } else if (nextStep === "continueQuiz") {
-                showLevelIntro(); // 다음 레벨 인트로
-            } else {
-                runScenario(nextStep); // 다음 일반 시나리오
-            }
-        }
-
-        // --- 퀴즈 전용 함수 (신규) ---
-
-        // 퀴즈 시작 함수
-        function startQuiz() {
-            currentLevel = 0;
-            currentQuestionIndex = 0;
-            totalScore = 0;
-            showLevelIntro();
-        }
-
-        // 퀴즈 레벨 인트로 표시
-        async function showLevelIntro() {
-            const level = quizLevels[currentLevel];
-            optionsContainer.innerHTML = '';
-            toggleTyping(true);
-
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            await addBotMessage(`자, 그럼 ${level.levelName} 퀴즈를 시작할게!`);
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            toggleTyping(false);
-            showQuestion(); // 첫 번째 문제 표시
-        }
-
-        // 퀴즈 문제 표시
-        async function showQuestion() {
-            const question = quizLevels[currentLevel].questions[currentQuestionIndex];
-            
-            toggleTyping(true);
-            optionsContainer.innerHTML = ''; // 이전 버튼 숨기기
-
-            for (const message of question.botMessages) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                await addBotMessage(message);
-            }
-
-            toggleTyping(false);
-            
-            setTimeout(() => {
-                showOptions(question.options); // 문제 선택지 표시
-            }, 500);
-        }
-
-        // 퀴즈 정답 처리
-        async function handleAnswer(option) {
-            addUserMessage(option.text);
-            optionsContainer.innerHTML = '<div class="text-center text-gray-400">다음 문제를 준비 중...</div>';
-
-            toggleTyping(true);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // 피드백 메시지 표시
-            await addBotMessage(option.feedback);
-
-            if (option.isCorrect) {
-                totalScore++; // 정답이면 점수 증가
-            }
-
-            await new Promise(resolve => setTimeout(resolve, 1500)); // 피드백 읽을 시간
-            toggleTyping(false);
-
-            currentQuestionIndex++; // 다음 문제로 이동
-
-            // 현재 레벨의 모든 문제를 풀었는지 확인
-            if (currentQuestionIndex >= quizLevels[currentLevel].questions.length) {
-                currentLevel++; // 다음 레벨로
-                currentQuestionIndex = 0;
-
-                // 모든 레벨을 다 풀었는지 확인
-                if (currentLevel >= quizLevels.length) {
-                    // 게임 종료
-                    runScenario(300);
-                } else {
-                    // 다음 레벨로 이동 (단계 이동 시나리오 실행)
-                    runScenario(currentLevel * 100); // 100(2단계), 200(3단계)
-                }
-            } else {
-                // 같은 레벨의 다음 문제 표시
-                showQuestion();
-            }
-        }
-
-        // 챗봇 시작
-        setTimeout(() => {
-            runScenario(0); // 0번 시나리오(인트로)로 시작
-        }, 500);
-
+        
+        // 앱 시작
+        initializeFirebase();
     </script>
 </body>
 </html>
-
